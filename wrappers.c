@@ -27,6 +27,8 @@ fopen_or_exit(const char *pathname, const char *mode)
     return fp;
 }
 
+
+
 size_t
 fread_or_exit(void *ptr, size_t size, size_t nmemb, FILE *stream)
 // wrapper para fread
@@ -67,6 +69,7 @@ calloc_or_exit(size_t nmemb, size_t size)
     }
     return p;
 }
+
 
 // wrapper para malloc
 void *
