@@ -7,9 +7,15 @@
 #define MAXWORD 50
 #define MAXNUMBERWORDS 10
 
-void malloc_for_list(char **argv){
-    for(int i=0;i<MAXNUMBERWORDS;i++){
-        argv[i] = (char *)malloc_or_exit(MAXWORD+1);
+void malloc_for_list(char **argv) {
+    for (int i = 0; i < MAXNUMBERWORDS; i++) {
+        argv[i] = (char *)malloc((MAXWORD + 1) * sizeof(char));
+    }
+}
+
+void free_list(char **argv) {
+    for (int i = 0; i < MAXNUMBERWORDS; i++) {
+        free(argv[i]);
     }
 }
 
@@ -23,5 +29,8 @@ int main(void){
         }
         
     }
+    free_list(argv);
+    free(argv);
+    free(buffer);
     return 0;
 }
