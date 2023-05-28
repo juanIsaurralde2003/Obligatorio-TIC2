@@ -25,7 +25,7 @@ int main(void){
     malloc_for_list(argv);
     while(1){
         if(fgets(buffer,MAXLINE,stdin)!=NULL){
-            printf("%d",linea2argv(buffer,MAXNUMBERWORDS,argv));
+            printf("%d\n",linea2argv(buffer,MAXNUMBERWORDS,argv));
         }
         
     }
