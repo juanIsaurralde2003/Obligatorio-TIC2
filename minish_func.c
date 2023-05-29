@@ -3,6 +3,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <pwd.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 extern int last_command_status; 
 
@@ -50,8 +52,38 @@ int builtin_uid (){
             return 1;
         }
 }
-int builtin_getenv (int argc, char ** argv);
-int builtin_setenv (int argc, char ** argv);
+int builtin_getenv (int argc, char ** argv){ //revisar excepciones
+    if(argc>1){
+        for(int i=1;i<argc;i++){
+            char *variable = argv[i];
+            char *valor = getenv(variable);
+            if(valor != NULL){
+                printf("%s = %s\n",variable,valor);
+            }
+            else{
+                printf("%s %s error: Invalid argument\n",argv[0],argv[1]);
+                return 1;
+            }
+        }
+    }
+    else{
+        //imprimir el valor de todas las variables de entorno
+
+    }
+    return 0;
+}
+int builtin_setenv (int argc, char ** argv){
+    if(argc==3){
+        char *variable = argv[1];
+        char *valor = argv[2];
+        setenv(variable,valor,1);
+    }
+    else{
+        printf("setenv error: Invalid argument"); //revisar excepciones
+        return 1;
+    }
+    return 0;
+}
 
 int linea2argv(char *linea, int argc, char **argv){
     int i=0;
@@ -67,6 +99,7 @@ int linea2argv(char *linea, int argc, char **argv){
         else if(is_a_space==0)
         {
             argv[word_count][j] = '\0';
+            j=0;
             word_count++;
             is_a_space=1;
         }

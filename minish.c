@@ -34,7 +34,7 @@ int main(void){
 
    
         if (argc > 0) {
-            printf("%s\n",argv[0]);
+            printf("%d\n",argc);
             char *command = argv[0];
          
             if (strcmp(command, "exit") == 0) {
@@ -48,11 +48,10 @@ int main(void){
             } else if (strcmp(command, "uid") == 0){
                 last_command_status = builtin_uid();
             } else if (strcmp(command, "getenv") == 0){
-                
+                last_command_status = builtin_getenv(argc,argv);
             } else if (strcmp(command, "setenv") == 0){
-                
-            } 
-            else {
+                last_command_status = builtin_setenv(argc,argv);
+            } else {
                 printf("Comando no reconocido\n");
             }
         }    
