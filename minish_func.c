@@ -5,6 +5,7 @@
 #include <pwd.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <grp.h>
 
 extern int last_command_status; 
 
@@ -52,6 +53,27 @@ int builtin_uid (){
             return 1;
         }
 }
+int builtin_gid (int argc, char ** argv){
+    gid_t group_id = getgid();
+    printf("Grupo principal: %d\n", group_id);
+    
+    int num_groups = getgroups(0, NULL);
+    gid_t group_list[num_groups];
+    getgroups(num_groups, group_list);
+    
+    printf("Grupos secundarios: ");
+    for (int i = 0; i < num_groups; i++) {
+        struct group *grp = getgrgid(group_list[i]);
+        if (grp != NULL) {
+            printf("%s ", grp->gr_name);
+        }
+    }
+    printf("\n");
+    
+    return 0;
+}
+
+//dsadsa
 int builtin_getenv (int argc, char ** argv){ //revisar excepciones
     if(argc>1){
         for(int i=1;i<argc;i++){
@@ -84,7 +106,6 @@ int builtin_setenv (int argc, char ** argv){
     }
     return 0;
 }
-
 int linea2argv(char *linea, int argc, char **argv){
     int i=0;
     int j=0;
