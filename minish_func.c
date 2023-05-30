@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <grp.h>
 
-extern int last_command_status; 
+
 
 int builtin_exit (int argc, char ** argv)
 {
@@ -16,36 +16,46 @@ int builtin_exit (int argc, char ** argv)
         exit(status);
     }
     else{
-        exit(last_command_status);
+        exit(globalstatret);
     }
 }
 
 int builtin_help (int argc, char ** argv)
 {
     if (argc>1){
-        //ni idea
-        printf("%s",argv[1]);
+        struct builtin_struct *cmd=builtin_lookup(argv[1]);
+        if (cmd!=NULL){
+            printf("%s\n",cmd->help_txt);
+        }
+        else{
+            printf("Sorry, command not found. Type 'help' to see this list\n");
+        }
     }
+
     else{
-        printf("These shell commands are defined internally. Type `help' to see this list");
+        printf("These shell commands are defined internally. Type 'help' to see this list");
         printf("Type `help name' to find out more about the function `name'");
         printf("Here's the list of commands: help, exit, lookup, history, status, cd, dir, getenv, set env, pid, uid, unsetenv, ejecutar y externo\n");
     }
     return 0;
 }
-int builtin_pid (){
+int builtin_pid (int argc,char ** argv){
+    if (argv[0] && argc){}
+
     pid_t pid = getpid();
     printf("parent process id is %d\n",(unsigned) pid);
     return 0;
 }
 
-int builtin_uid (){
+int builtin_uid (int argc, char ** argv){
+    if (argv[0] && argc){}
+
     uid_t uid = geteuid();
     struct passwd *access = getpwuid(uid);
     if (access)
         {
             printf("nombre: %s\n",access->pw_name);
-            printf("id: %d",uid);
+            printf("id: %d\n",uid);
             return 0;
         }
     else{
@@ -54,6 +64,8 @@ int builtin_uid (){
         }
 }
 int builtin_gid (int argc, char ** argv){
+    if (argv[0] && argc){}
+
     gid_t group_id = getgid();
     printf("Grupo principal: %d\n", group_id);
     
