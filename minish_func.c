@@ -112,7 +112,7 @@ int linea2argv(char *linea, int argc, char **argv){
     int word_count=0;
     int is_a_space=0;
     while(linea[i]!='\n' && word_count<argc){
-        if(linea[i]!=' ' && linea[i]!='\t'){
+        if(linea[i]!= '\0' && linea[i]!=' ' && linea[i]!='\t'){
             argv[word_count][j] = linea[i]; 
             j++;
             is_a_space=0;
@@ -126,8 +126,10 @@ int linea2argv(char *linea, int argc, char **argv){
         }
         i++;
     }
-    if (j>0 && is_a_space!=1) word_count++;
+    if (is_a_space==0){
+        argv[word_count][j] = '\0';
+        word_count++;
+    }
     argv[word_count] = NULL;
-
     return word_count;
 }

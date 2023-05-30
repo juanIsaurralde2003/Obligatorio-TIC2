@@ -32,7 +32,6 @@ int main(void){
         malloc_for_list(argv);
         int argc = linea2argv(buffer, MAXNUMBERWORDS, argv);
         if (argc > 0) {
-            printf("%d\n",argc);
             char *command = argv[0];
          
             if (strcmp(command, "exit") == 0) {
