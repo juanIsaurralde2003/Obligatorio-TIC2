@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <grp.h>
+#include <sys/wait.h>
 
 
 
@@ -43,8 +44,11 @@ int builtin_pid (int argc,char ** argv){
     if (argv[0] && argc){}
 
     pid_t pid = getpid();
-    printf("parent process id is %d\n",(unsigned) pid);
-    return 0;
+    if(pid!=0){
+        printf("parent process id is %d\n",(unsigned) pid);
+        return 0;
+    }
+    return 1;
 }
 
 int builtin_uid (int argc, char ** argv){
@@ -145,3 +149,42 @@ int linea2argv(char *linea, int argc, char **argv){
     argv[word_count] = NULL;
     return word_count;
 }
+
+int builtin_status (int argc, char ** argv){
+    if (argv[0] && argc){}
+    printf("%d\n",globalstatret);
+    return 0;
+}
+
+
+int ejecutar (int argc, char ** argv)
+{
+    struct builtin_struct *cmd=builtin_lookup(argv[0]);
+    if (cmd==NULL){
+        return externo(argc,argv);
+    }
+    return cmd->func(argc,argv);
+}
+
+int externo (int argc, char ** argv)
+{
+    pid_t pid = fork();
+    int status=1;
+
+   if (pid < 0 || argc==0) { 
+   	fprintf(stderr, "Fork Failed");
+   	return 1;
+   }
+
+   else if (pid == 0) { /* child process */
+   	status = execvp(argv[0], argv);
+   }
+
+   else { /* parent process */
+   	/* parent will wait for the child to complete */
+   	  wait(NULL);
+   }
+   return status;
+
+}
+

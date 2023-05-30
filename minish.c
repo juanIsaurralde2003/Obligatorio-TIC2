@@ -29,7 +29,7 @@ struct builtin_struct builtin_arr[] = {
         { "setenv", builtin_setenv, HELP_SETENV},
         { "pid", builtin_pid, HELP_PID},
         { "gid", builtin_gid, HELP_GID},
-   //     { "status", builtin_status, HELP_STATUS},
+        { "status", builtin_status, HELP_STATUS},
         { "uid", builtin_uid, HELP_UID},
         { NULL, NULL, NULL }
     };
@@ -68,13 +68,7 @@ int main(void){
         malloc_for_list(argv);
         int argc = linea2argv(buffer, MAXNUMBERWORDS, argv);
         if (argc > 0) {
-            struct builtin_struct *cmd=builtin_lookup(argv[0]);
-            if (cmd!=NULL){
-                globalstatret = cmd->func(argc,argv);
-            }
-            else {
-                printf("comando interno no existe");
-            }
+            globalstatret= ejecutar(argc,argv);
             free_list(argv,argc);
         }
     }
