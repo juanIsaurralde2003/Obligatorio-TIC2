@@ -31,8 +31,6 @@ int main(void){
         fgets(buffer, MAXLINE, stdin);
         malloc_for_list(argv);
         int argc = linea2argv(buffer, MAXNUMBERWORDS, argv);
-
-   
         if (argc > 0) {
             printf("%d\n",argc);
             char *command = argv[0];
