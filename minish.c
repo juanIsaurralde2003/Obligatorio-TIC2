@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
+#include <pwd.h>
 #include "wrappers.h"
 #include "minish.h"
 
@@ -58,6 +60,18 @@ void free_list(char **argv,int argc){
     }
 }
 
+int print_minish_with_data(){
+    char *dir = (char *)malloc_or_exit(4096*sizeof(char)+1);
+    dir = getcwd(dir,4097);
+    uid_t uid = geteuid();
+    struct passwd *access = getpwuid(uid);
+    if(dir != NULL && access){
+        printf("(minish) (%s):%s> ",access->pw_name,dir);
+        return 0;
+    }
+    return 1;
+}
+
 
 int main(void){
     char **argv = (char **)malloc_or_exit((MAXNUMBERWORDS+1)*sizeof (char *));
@@ -65,7 +79,7 @@ int main(void){
     globalstatret = 0;
 
     while (1) {
-        printf("(minish)  ");
+        print_minish_with_data();
         fgets(buffer, MAXLINE, stdin);
         malloc_for_list(argv);
         int argc = linea2argv(buffer, MAXNUMBERWORDS, argv);
