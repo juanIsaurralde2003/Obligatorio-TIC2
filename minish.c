@@ -15,6 +15,7 @@
 #define HELP_STATUS  "status - muestra status de retorno de ultimo comando ejecutado"
 #define HELP_UID     "uid - muestra nombre y número de usuario dueño del minish"
 #define HELP_GID     "gid - muestra el grupo principal y los grupos secundarios del usuario"
+#define HELP_UNSETENV   "unsetenv- elimina variables de ambiente."
 
 
 
@@ -31,6 +32,7 @@ struct builtin_struct builtin_arr[] = {
         { "gid", builtin_gid, HELP_GID},
         { "status", builtin_status, HELP_STATUS},
         { "uid", builtin_uid, HELP_UID},
+        {"unsetenv", builtin_unsetenv,HELP_UNSETENV},
         { NULL, NULL, NULL }
     };
 

@@ -89,7 +89,6 @@ int builtin_gid (int argc, char ** argv){
     return 0;
 }
 
-//dsadsa
 int builtin_getenv (int argc, char ** argv){ //revisar excepciones
     if(argc>1){
         for(int i=1;i<argc;i++){
@@ -122,6 +121,26 @@ int builtin_setenv (int argc, char ** argv){
     }
     return 0;
 }
+int builtin_unsetenv(int argc, char **argv){
+    int retorno;
+    if(argc<2){
+        return retorno=1;
+    }
+    else{
+        for(int i=1;i<argc;i++){
+            char *variable= argv[i];
+            int result= unsetenv(variable); //Llamo a la funcion para eliminar la variable y verifico si ocurrio algun error.
+            retorno= result;
+            if(result!=0){
+                printf("Error al eliminar la variable de entorno: %s\n", variable);
+            }
+            else{
+                printf("Variable de entorno eliminada: %s\n", variable);
+            }
+        }
+        return retorno;
+    }
+}
 int linea2argv(char *linea, int argc, char **argv){
     int i=0;
     int j=0;
@@ -150,6 +169,7 @@ int linea2argv(char *linea, int argc, char **argv){
     return word_count;
 }
 
+
 int builtin_status (int argc, char ** argv){
     if (argv[0] && argc){}
     printf("%d\n",globalstatret);
@@ -164,6 +184,7 @@ int ejecutar (int argc, char ** argv)
         return externo(argc,argv);
     }
     return cmd->func(argc,argv);
+    
 }
 
 int externo (int argc, char ** argv)
