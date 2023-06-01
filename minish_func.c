@@ -30,7 +30,7 @@ int builtin_help (int argc, char ** argv)
             printf("%s\n",cmd->help_txt);
         }
         else{
-            printf("Sorry, command not found. Type 'help' to see this list\n");
+            fprintf(stderr,"Sorry, command not found. Type 'help' to see this list\n");
         }
     }
 
@@ -100,7 +100,7 @@ int builtin_getenv (int argc, char ** argv){ //revisar excepciones
                 printf("%s = %s\n",variable,valor);
             }
             else{
-                printf("%s %s error: Invalid argument\n",argv[0],argv[1]);
+                fprintf(stderr,"%s %s error: Invalid argument\n",argv[0],argv[1]);
                 return 1;
             }
         }
@@ -118,7 +118,7 @@ int builtin_setenv (int argc, char ** argv){
         setenv(variable,valor,1);
     }
     else{
-        printf("setenv error: Invalid argument"); //revisar excepciones
+        fprintf(stderr,"setenv error: Invalid argument"); //revisar excepciones
         return 1;
     }
     return 0;
@@ -176,16 +176,16 @@ int externo (int argc, char ** argv)
    	fprintf(stderr, "Fork Failed");
    	return 1;
    }
-
-   else if (pid == 0) { /* child process */
-   	status = execvp(argv[0], argv);
-   }
-
-   else { /* parent process */
+    else if (pid == 0) { /* child process */
+        status = execvp(argv[0], argv);
+        fprintf(stderr,"Exteranl function fail\n");
+        exit(1);
+    }
+    else { /* parent process */
    	/* parent will wait for the child to complete */
    	  wait(NULL);
-   }
-   return status;
+    }
+    return status;
 
 }
 
@@ -199,7 +199,7 @@ int builtin_unsetenv(int argc, char **argv){
             char *variable= argv[i];
             int result= unsetenv(variable); //Llamo a la funcion para eliminar la variable y verifico si ocurrio algun error.
             if(result!=0){
-                printf("Error al eliminar la variable de entorno: %s\n", variable);
+                fprintf(stderr,"Error al eliminar la variable de entorno: %s\n", variable);
                 retorno=1;
             }
             else{
