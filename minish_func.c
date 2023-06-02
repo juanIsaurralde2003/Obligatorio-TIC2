@@ -1,6 +1,7 @@
 #include "minish.h"
 #include "wrappers.h"
 #include <sys/types.h>
+#include <string.h>
 #include <unistd.h>
 #include <pwd.h>
 #include <stdlib.h>
@@ -178,7 +179,7 @@ int externo (int argc, char ** argv)
    }
     else if (pid == 0) { /* child process */
         status = execvp(argv[0], argv);
-        fprintf(stderr,"Exteranl function fail\n");
+        fprintf(stderr,"External function fail\n");
         exit(1);
     }
     else { /* parent process */
@@ -209,3 +210,48 @@ int builtin_unsetenv(int argc, char **argv){
         return retorno;
     }
 }
+
+int builtin_cd (int argc, char ** argv)
+{
+    char *new_path = NULL;
+
+    if (argc == 1) {
+        new_path = getenv("HOME");
+    } else if (strcmp(argv[1], "-") == 0) {
+        new_path = getenv("OLDPWD");
+    } else {
+        char *current_path = getenv("PWD");
+        size_t current_path_len = strlen(current_path);
+        size_t arg_len = strlen(argv[1]);
+
+        if (arg_len > 0 && argv[1][0] == '/') {
+            // Absolute path
+            new_path = argv[1];
+        } else {
+            // Relative path
+            size_t new_path_len = current_path_len + arg_len + 2; 
+            new_path = malloc(new_path_len);
+            snprintf(new_path, new_path_len, "%s/%s", current_path, argv[1]);
+        }
+    }
+
+    if (new_path != NULL) {
+        char *old_path = getenv("PWD");
+
+        if (chdir(new_path) == 0) {
+            setenv("OLDPWD", old_path, 1);
+            setenv("PWD", new_path, 1);
+        } else {
+            fprintf(stderr, "cd to %s failed\n", new_path);
+            return 1;
+        }
+    } else {
+        fprintf(stderr, "Invalid argument\n");
+        return 1;
+    }
+
+    return 0;
+}
+
+
+
