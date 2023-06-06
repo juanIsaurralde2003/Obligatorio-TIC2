@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <grp.h>
 #include <sys/wait.h>
+#include <dirent.h>
 
 
 
@@ -251,6 +252,40 @@ int builtin_cd (int argc, char ** argv)
     }
 
     return 0;
+}
+
+print_files(DIR *dir){
+    struct dirent *entry;
+     while ((entry = readdir(dir)) != NULL) {
+        printf("%s\n", entry->d_name);
+    }
+}
+
+int builtin_dir (int argc, char ** argv){
+
+    if(argc==1){
+        char *path = getenv("HOME");
+        DIR *home_dir = opendir(path);
+        print_files(home_dir);
+        closedir(home_dir);
+    }
+
+    else if(argc==2){
+        DIR *dir = opendir(argv[2]);
+        if(dir != NULL){
+            print_files(dir);
+            closedir(dir);
+        }
+        else{
+            char *path_dir_actual = getenv("PWD");
+            DIR *dir_actual = opendir(path_dir_actual);
+            
+        }
+    }
+
+    else{
+
+    }
 }
 
 
