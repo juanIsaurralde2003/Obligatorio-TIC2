@@ -254,24 +254,33 @@ int builtin_cd (int argc, char ** argv)
     return 0;
 }
 
-print_files(DIR *dir){
+void print_files(DIR *dir){
     struct dirent *entry;
      while ((entry = readdir(dir)) != NULL) {
         printf("%s\n", entry->d_name);
+    }
+}
+void print_files_with_name(DIR *dir, char *name){
+    struct dirent *entry;
+     while ((entry = readdir(dir)) != NULL) {
+        char *nombre_archivo = entry->d_name;
+        if(strstr(nombre_archivo, name) != NULL){
+            printf("%s\n", nombre_archivo);
+        }
     }
 }
 
 int builtin_dir (int argc, char ** argv){
 
     if(argc==1){
-        char *path = getenv("HOME");
+        char *path = getenv("PWD");
         DIR *home_dir = opendir(path);
         print_files(home_dir);
         closedir(home_dir);
     }
 
     else if(argc==2){
-        DIR *dir = opendir(argv[2]);
+        DIR *dir = opendir(argv[1]);
         if(dir != NULL){
             print_files(dir);
             closedir(dir);
@@ -279,13 +288,17 @@ int builtin_dir (int argc, char ** argv){
         else{
             char *path_dir_actual = getenv("PWD");
             DIR *dir_actual = opendir(path_dir_actual);
-            
+            print_files_with_name(dir_actual,argv[1]);
+            closedir(dir_actual);
+
         }
     }
 
     else{
-
+        fprintf(stderr,"Muchos argumentos");
+        return 1;
     }
+    return 0;
 }
 
 

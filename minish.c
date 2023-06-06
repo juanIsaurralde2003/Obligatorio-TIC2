@@ -24,7 +24,7 @@
 int globalstatret;
 struct builtin_struct builtin_arr[] = {
         { "cd", builtin_cd, HELP_CD },
-      //  { "dir",builtin_dir, HELP_DIR},
+        { "dir",builtin_dir, HELP_DIR},
         { "exit", builtin_exit, HELP_EXIT},
         { "help", builtin_help, HELP_HELP},
     //    { "history", builtin_history, HELP_HISTORY},
