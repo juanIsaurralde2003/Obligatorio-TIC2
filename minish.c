@@ -2,8 +2,10 @@
 #include <string.h>
 #include <unistd.h>
 #include <pwd.h>
+#include <signal.h>
 #include "wrappers.h"
 #include "minish.h"
+
 
 #define MAXNUMBERWORDS 10
 #define HELP_CD      "cd [..|dir] - cambia de directorio corriente"
@@ -77,6 +79,11 @@ int main(void){
     char **argv = (char **)malloc_or_exit((MAXNUMBERWORDS+1)*sizeof (char *));
     char *buffer = (char *)malloc_or_exit((MAXLINE+1) * sizeof (char));
     globalstatret = 0;
+
+    struct sigaction str_sigint_action;
+    memset(&str_sigint_action, 0, sizeof(str_sigint_action));
+    str_sigint_action.sa_handler = SIG_IGN;
+    sigaction(SIGINT, &str_sigint_action, NULL);
 
     while (1) {
         print_minish_with_data();
