@@ -9,6 +9,8 @@
 #include <grp.h>
 #include <sys/wait.h>
 #include <dirent.h>
+#define HISTORY_FILE "$HOME/.minish_history"
+#define MAX_COMMAND_LENGTH 100
 
 
 
@@ -300,6 +302,47 @@ int builtin_dir (int argc, char ** argv){
     }
     return 0;
 }
+
+typedef struct Node {
+    char command[MAX_COMMAND_LENGTH];
+    struct Node* next;
+} Node;
+
+Node *history=NULL;
+
+void freeHistory() { //para liberar la lista creada para history
+    Node* current = history;
+    while (current != NULL) {
+        Node* temp = current;
+        current = current->next;
+        free(temp);
+    }
+}
+
+void chargeHistory(){
+    FILE* file = fopen(HISTORY_FILE, "r");
+    if (file != NULL) {
+        char command[MAX_COMMAND_LENGTH];
+
+        while (fgets(command, MAX_COMMAND_LENGTH, file) != NULL) {
+            // Eliminar el carácter de nueva línea del final del comando
+            command[strcspn(command, "\n")] = '\0';
+
+            addCommandToHistory(command);
+        }
+
+        fclose(file);
+}
+}
+
+
+
+
+int builtin_history(int argc,char **argv){
+
+}
+
+
 
 
 
