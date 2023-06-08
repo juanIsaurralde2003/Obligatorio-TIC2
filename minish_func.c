@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <grp.h>
+#include <errno.h>       
+#include <error.h>
 #include <sys/wait.h>
 #include <dirent.h>
 #define HISTORY_FILE "$HOME/.minish_history"
@@ -34,14 +36,14 @@ int builtin_help (int argc, char ** argv)
             printf("%s\n",cmd->help_txt);
         }
         else{
-            fprintf(stderr,"Sorry, command not found. Type 'help' to see this list\n");
+            error(1,errno,"Lo siento, el comando no existe. Escriba 'help' para ver la lista de comandos");
         }
     }
 
     else{
-        printf("These shell commands are defined internally. Type 'help' to see this list");
-        printf("Type `help name' to find out more about the function `name'");
-        printf("Here's the list of commands: help, exit, lookup, history, status, cd, dir, getenv, set env, pid, uid, unsetenv, ejecutar y externo\n");
+        printf("Estos comandos de shell fueron definidos internamente. Escriba 'help' para ver la lista de comandos\n");
+        printf("Escriba `help name' para ver mas información acerca de la funcion 'name'");
+        printf("Esta es la lista de comandos: help, exit, lookup, history, status, cd, dir, getenv, set env, pid, uid, unsetenv, ejecutar y externo\n");
     }
     return 0;
 }
@@ -50,10 +52,12 @@ int builtin_pid (int argc,char ** argv){
 
     pid_t pid = getpid();
     if(pid!=0){
-        printf("parent process id is %d\n",(unsigned) pid);
+        printf("Id del proceso padre es: %d\n",(unsigned) pid);
         return 0;
     }
+    error(1,errno,"No se pudo encontrar pid");
     return 1;
+
 }
 
 int builtin_uid (int argc, char ** argv){
@@ -67,10 +71,8 @@ int builtin_uid (int argc, char ** argv){
             printf("id: %d\n",uid);
             return 0;
         }
-    else{
-            fprintf (stderr,"cannot find username for UID %u\n",(unsigned) uid);
-            return 1;
-        }
+    error(1,errno,"No se pudo encontrar nombre de usuario para la UID %u ",(unsigned) uid);
+    return 1;
 }
 int builtin_gid (int argc, char ** argv){
     if (argv[0] && argc){}
@@ -104,8 +106,7 @@ int builtin_getenv (int argc, char ** argv){ //revisar excepciones
                 printf("%s = %s\n",variable,valor);
             }
             else{
-                fprintf(stderr,"%s %s error: Invalid argument\n",argv[0],argv[1]);
-                return 1;
+                error(1,errno,"%s %s error: Argumentos inválidos ",argv[0],argv[1]);
             }
         }
     }
@@ -122,8 +123,7 @@ int builtin_setenv (int argc, char ** argv){
         setenv(variable,valor,1);
     }
     else{
-        fprintf(stderr,"setenv error: Invalid argument"); //revisar excepciones
-        return 1;
+        error(1,errno,"setenv error: Argumentos invalidos"); //revisar excepciones
     }
     return 0;
 }
@@ -152,6 +152,7 @@ int linea2argv(char *linea, int argc, char **argv){
         word_count++;
     }
     argv[word_count] = NULL;
+
     return word_count;
 }
 
@@ -177,12 +178,12 @@ int externo (int argc, char ** argv)
     int status=1;
 
    if (pid < 0 || argc==0) { 
-   	fprintf(stderr, "Fork Failed");
+   	error(1,errno, "Fork Failed ");
    	return 1;
    }
     else if (pid == 0) { /* child process */
         status = execvp(argv[0], argv);
-        fprintf(stderr,"External function fail\n");
+        error(1,errno,"External function fail ");
         exit(1);
     }
     else { /* parent process */
@@ -203,8 +204,7 @@ int builtin_unsetenv(int argc, char **argv){
             char *variable= argv[i];
             int result= unsetenv(variable); //Llamo a la funcion para eliminar la variable y verifico si ocurrio algun error.
             if(result!=0){
-                fprintf(stderr,"Error al eliminar la variable de entorno: %s\n", variable);
-                retorno=1;
+                error(1,errno,"Error al eliminar la variable de entorno: %s ", variable);
             }
             else{
                 printf("Variable de entorno eliminada: %s\n", variable);
@@ -245,12 +245,10 @@ int builtin_cd (int argc, char ** argv)
             setenv("OLDPWD", old_path, 1);
             setenv("PWD", new_path, 1);
         } else {
-            fprintf(stderr, "cd to %s failed\n", new_path);
-            return 1;
+            error(1,errno, "cd to %s failed ", new_path);
         }
     } else {
-        fprintf(stderr, "Invalid argument\n");
-        return 1;
+        error(1,errno, "Invalid argument ");
     }
 
     return 0;
@@ -297,11 +295,12 @@ int builtin_dir (int argc, char ** argv){
     }
 
     else{
-        fprintf(stderr,"Muchos argumentos");
+        error(1,errno,"Muchos argumentos ");
         return 1;
     }
     return 0;
 }
+
 
 typedef struct Node {
     char command[MAX_COMMAND_LENGTH];
