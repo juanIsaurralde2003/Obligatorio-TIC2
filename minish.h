@@ -1,7 +1,7 @@
 #define MAXLINE 1024        // tamaño máximo de la línea de entrada
 #define MAXCWD 1024         // tamaño máximo para alojar el pathname completo del directorio corriente
 #define MAXWORDS 256        // cantidad máxima de palabras en la línea
-#define HISTORY_FILE	".minish_history"   // nombre del archivo que almacena historia de comandos
+#define HISTORY_FILE "$HOME/.minish_history"   // nombre del archivo que almacena historia de comandos
 
 // Definición de Estructuras
 
@@ -12,11 +12,29 @@ struct builtin_struct {         // struct con información de los builtins
 };
 
 
+struct deq_elem {           // element of double ended queue
+    char *str;              // stored string
+    struct deq_elem *next;  // next element - NULL if last
+    struct deq_elem *prev;  // previous element - NULL if first
+};
+
+struct deq {                // double ended queue
+    int count;              // how many elements in queue
+    struct deq_elem *leftmost;  // leftmost element in queue - NULL if count==0
+    struct deq_elem *rightmost; // rightmost element in queue - NULL if count==0
+};
+
+
 // Variables que deben definirse en el main como externas
 
 extern int globalstatret;	// guarda status del ultimo comando
 
+extern int loaded_history;
+
+extern struct deq *history;
+
 extern struct builtin_struct builtin_arr[];
+
 
 /*
     builtin_arr es una lista de los builtins, que se recorrerá en forma lineal.
@@ -72,3 +90,21 @@ extern int linea2argv(char *linea, int argc, char **argv);
 extern int builtin_dir (int argc, char ** argv);
 extern int builtin_unsetenv (int argc, char ** argv);
 extern int builtin_history (int argc, char ** argv);
+
+
+extern void load_history();
+extern void save_history();
+
+
+
+extern struct deq *deq_create1(void);
+
+void delete_elem(struct deq_elem *elemento);
+
+extern struct deq_elem *elem_create(void);
+
+extern struct deq *deq_create(void);
+
+extern struct deq_elem *deq_append(struct deq *deque, char *s);
+
+

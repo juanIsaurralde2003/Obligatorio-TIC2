@@ -15,7 +15,7 @@
 #define MAX_COMMAND_LENGTH 100
 
 
-
+int loaded_history;
 
 int builtin_exit (int argc, char ** argv)
 {
@@ -302,23 +302,8 @@ int builtin_dir (int argc, char ** argv){
 }
 
 
-typedef struct Node {
-    char command[MAX_COMMAND_LENGTH];
-    struct Node* next;
-} Node;
 
-Node *history=NULL;
-
-void freeHistory() { //para liberar la lista creada para history
-    Node* current = history;
-    while (current != NULL) {
-        Node* temp = current;
-        current = current->next;
-        free(temp);
-    }
-}
-
-void chargeHistory(){
+void load_history(){
     FILE* file = fopen(HISTORY_FILE, "r");
     if (file != NULL) {
         char command[MAX_COMMAND_LENGTH];
@@ -326,66 +311,109 @@ void chargeHistory(){
         while (fgets(command, MAX_COMMAND_LENGTH, file) != NULL) {
             // Eliminar el carácter de nueva línea del final del comando
             command[strcspn(command, "\n")] = '\0';
-            addCommandToHistory(command);
-        }
+            deq_append(history,command);
+            
 
-        fclose(file);
-}
-}
-
-void saveHistory(){ //para guardar en el archivo los ultimos comandos
-    FILE *file = fopen(HISTORY_FILE, "w");
-    if (file != NULL) {
-        Node* current = history;
-
-        while (current != NULL) {
-            fprintf(file, "%s\n", current->command);
-            current = current->next;
         }
 
         fclose(file);
     }
+    loaded_history=history->count;
 }
 
-void showHistory(int count) {
-    Node* current = history;
-    int commandCount = 0;
-
-    while (current != NULL && commandCount < count) {
-        printf("%s\n", current->command);
-        current = current->next;
-        commandCount++;
-    }
-}
-
-void freeHistory() { //liberar la memoria utilizada por history
-    Node* current = history;
+void free_history() { //liberar la memoria utilizada por history
+    struct deq_elem* current = history->leftmost;
     while (current != NULL) {
-        Node* temp = current;
+        struct deq_elem* temp = current;
         current = current->next;
         free(temp);
     }
 }
 
-// Función para agregar un comando al historial
-void addCommandToHistory(const char* command) {
-    Node* newNode = (Node*)malloc(sizeof(Node));
-    strcpy(newNode->command, command);
-    newNode->next = NULL;
 
-    if (history == NULL) {
-        history = newNode;
-    } else {
-        Node* current = history;
-        while (current->next != NULL) {
+void save_history(){ //para guardar en el archivo los ultimos comandos
+    FILE *file = fopen(HISTORY_FILE, "a");
+    if (file != NULL) {
+        struct deq_elem *current = history->leftmost;
+        int i=0;
+        while (current != NULL) {
+            if (i>=loaded_history) fprintf(file, "%s\n", current->str);
             current = current->next;
         }
-        current->next = newNode;
+        fclose(file);
+    }
+    free_history();
+}
+
+ 
+void show_history(int count) {
+    struct deq_elem *current = history->rightmost;
+    int commandCount=0;
+    while (current != NULL && commandCount < count) {
+        printf("%s\n", current->str);
+        current = current->prev;
+        commandCount++;
     }
 }
 
 
-int builtin_history(int argc,char **argv){}
+
+int builtin_history(int argc,char **argv){
+    int default_lines = 10;
+    if (argc==1){
+        show_history(default_lines);
+    }else{
+        show_history(argv[2]);
+    }    
+    return 1;
+}
+
+extern struct deq *deq_create1(void){
+    return (struct deq*) malloc_or_exit(sizeof(struct deq));
+}
+void delete_elem(struct deq_elem *elemento){
+    free(elemento->str);
+    free(elemento);
+}
+
+extern struct deq_elem *elem_create(void){
+    struct deq_elem *temp= (struct deq_elem*) malloc_or_exit(sizeof(struct deq_elem));
+    return temp;
+}
+
+
+struct deq *deq_create(void){
+    struct deq *temp= deq_create1();
+    temp->count=0;
+    temp->leftmost=temp->rightmost= NULL;
+    return temp;
+}
+// create new, empty deq
+
+extern struct deq_elem *deq_append(struct deq *deque, char *s){
+    struct deq_elem *elemento=elem_create();
+    elemento->str= strdup_or_exit(s);
+    if(deque->leftmost==NULL && deque->rightmost==NULL){
+        deque->leftmost= elemento;
+        deque->rightmost=elemento;
+        elemento->prev= NULL;
+        deque->count++;
+    }
+    else{
+        struct deq_elem *ultimo= deque->rightmost;
+        ultimo->next= elemento;
+        elemento->prev= ultimo;
+        elemento->next=NULL;
+        deque->rightmost= elemento;
+        deque->count++;
+    }
+    return elemento;
+}
+// append element on the right end, return new elem
+
+
+
+
 
 
 

@@ -20,16 +20,21 @@
 #define HELP_UID     "uid - muestra nombre y número de usuario dueño del minish"
 #define HELP_GID     "gid - muestra el grupo principal y los grupos secundarios del usuario"
 #define HELP_UNSETENV   "unsetenv- elimina variables de ambiente."
+#define MAX_COMMAND_LENGTH 100
 
 
+struct deq *history;
 
 int globalstatret;
+
+
+
 struct builtin_struct builtin_arr[] = {
         { "cd", builtin_cd, HELP_CD },
         { "dir",builtin_dir, HELP_DIR},
         { "exit", builtin_exit, HELP_EXIT},
         { "help", builtin_help, HELP_HELP},
-    //    { "history", builtin_history, HELP_HISTORY},
+        { "history", builtin_history, HELP_HISTORY},
         { "getenv", builtin_getenv, HELP_GETENV},
         { "setenv", builtin_setenv, HELP_SETENV},
         { "pid", builtin_pid, HELP_PID},
@@ -78,6 +83,9 @@ int print_minish_with_data(){
 int main(void){
     char **argv = (char **)malloc_or_exit((MAXNUMBERWORDS+1)*sizeof (char *));
     char *buffer = (char *)malloc_or_exit((MAXLINE+1) * sizeof (char));
+    history = deq_create();
+    load_history();
+
     globalstatret = 0;
 
     struct sigaction str_sigint_action;
@@ -90,14 +98,17 @@ int main(void){
         fgets(buffer, MAXLINE, stdin);
         malloc_for_list(argv);
         int argc = linea2argv(buffer, MAXNUMBERWORDS, argv);
+        deq_append(history,buffer);
         if (argc > 0) {
             globalstatret= ejecutar(argc,argv);
             free_list(argv,argc);
         }
     }
-  
+    
     free(argv);
     free(buffer);
+    str_sigint_action.sa_handler = SIG_DFL;
+    save_history();
     return 0;
 }
 
