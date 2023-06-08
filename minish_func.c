@@ -326,7 +326,6 @@ void chargeHistory(){
         while (fgets(command, MAX_COMMAND_LENGTH, file) != NULL) {
             // Eliminar el carácter de nueva línea del final del comando
             command[strcspn(command, "\n")] = '\0';
-
             addCommandToHistory(command);
         }
 
@@ -334,12 +333,60 @@ void chargeHistory(){
 }
 }
 
+void saveHistory(){ //para guardar en el archivo los ultimos comandos
+    FILE *file = fopen(HISTORY_FILE, "w");
+    if (file != NULL) {
+        Node* current = history;
 
+        while (current != NULL) {
+            fprintf(file, "%s\n", current->command);
+            current = current->next;
+        }
 
-
-int builtin_history(int argc,char **argv){
-
+        fclose(file);
+    }
 }
+
+void showHistory(int count) {
+    Node* current = history;
+    int commandCount = 0;
+
+    while (current != NULL && commandCount < count) {
+        printf("%s\n", current->command);
+        current = current->next;
+        commandCount++;
+    }
+}
+
+void freeHistory() { //liberar la memoria utilizada por history
+    Node* current = history;
+    while (current != NULL) {
+        Node* temp = current;
+        current = current->next;
+        free(temp);
+    }
+}
+
+// Función para agregar un comando al historial
+void addCommandToHistory(const char* command) {
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    strcpy(newNode->command, command);
+    newNode->next = NULL;
+
+    if (history == NULL) {
+        history = newNode;
+    } else {
+        Node* current = history;
+        while (current->next != NULL) {
+            current = current->next;
+        }
+        current->next = newNode;
+    }
+}
+
+
+int builtin_history(int argc,char **argv){}
+
 
 
 
