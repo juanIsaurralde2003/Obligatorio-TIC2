@@ -61,6 +61,7 @@ void save_history(){ //para guardar en el archivo los ultimos comandos
         while (current != NULL) {
             if (i>=loaded_history) fprintf(file, "%s\n", current->str);
             current = current->next;
+            i++;
         }
         fclose(file);
     }
