@@ -98,6 +98,7 @@ int main(void){
         fgets(buffer, MAXLINE, stdin);
         malloc_for_list(argv);
         int argc = linea2argv(buffer, MAXNUMBERWORDS, argv);
+        buffer[strcspn(buffer, "\n")] = '\0';
         deq_append(history,buffer);
         if (argc > 0) {
             globalstatret= ejecutar(argc,argv);
