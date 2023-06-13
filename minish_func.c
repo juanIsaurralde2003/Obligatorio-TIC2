@@ -17,8 +17,77 @@
 
 int loaded_history;
 
+void load_history(){
+    FILE* file = fopen(HISTORY_FILE, "r");
+    if (file != NULL) {
+        char command[MAX_COMMAND_LENGTH];
+
+        while (fgets(command, MAX_COMMAND_LENGTH, file) != NULL) {
+            // Eliminar el carácter de nueva línea del final del comando
+            command[strcspn(command, "\n")] = '\0';
+            deq_append(history,command);
+            
+
+        }
+
+        fclose(file);
+    }
+    loaded_history=history->count;
+}
+
+void free_history() { //liberar la memoria utilizada por history
+    struct deq_elem* current = history->leftmost;
+    while (current != NULL) {
+        struct deq_elem* temp = current;
+        current = current->next;
+        free(temp);
+    }
+}
+
+
+void save_history(){ //para guardar en el archivo los ultimos comandos
+    char filename[] = "$HOME/.minish_history.txt";
+    FILE *file = fopen(filename, "a");
+    if (file != NULL) {
+        printf("entre\n");
+        struct deq_elem *current = history->leftmost;
+        int i=0;
+        while (current != NULL) {
+            if (i>=loaded_history) fprintf(file, "%s\n", current->str);
+            current = current->next;
+        }
+        fclose(file);
+    }
+    free_history();
+}
+
+ 
+void show_history(int count) {
+    struct deq_elem *current = history->rightmost;
+    int commandCount=0;
+    while (current != NULL && commandCount < count) {
+        printf("%s", current->str);
+        current = current->prev;
+        commandCount++;
+    }
+}
+
+
+
+int builtin_history(int argc,char **argv){
+    int default_lines = 10;
+    if (argc==1){
+        show_history(default_lines);
+    }else{
+        show_history(atoi(argv[1]));
+    }    
+    return 1;
+}
+
+
 int builtin_exit (int argc, char ** argv)
-{
+{   
+    save_history();
     if (argc>1){
         int status = atoi(argv[1]);
         exit(status);
@@ -132,6 +201,7 @@ int linea2argv(char *linea, int argc, char **argv){
     int j=0;
     int word_count=0;
     int is_a_space=0;
+
     while(linea[i]!='\n' && word_count<argc){
         if(linea[i]!= '\0' && linea[i]!=' ' && linea[i]!='\t'){
             argv[word_count][j] = linea[i]; 
@@ -299,73 +369,6 @@ int builtin_dir (int argc, char ** argv){
         return 1;
     }
     return 0;
-}
-
-
-
-void load_history(){
-    FILE* file = fopen(HISTORY_FILE, "r");
-    if (file != NULL) {
-        char command[MAX_COMMAND_LENGTH];
-
-        while (fgets(command, MAX_COMMAND_LENGTH, file) != NULL) {
-            // Eliminar el carácter de nueva línea del final del comando
-            command[strcspn(command, "\n")] = '\0';
-            deq_append(history,command);
-            
-
-        }
-
-        fclose(file);
-    }
-    loaded_history=history->count;
-}
-
-void free_history() { //liberar la memoria utilizada por history
-    struct deq_elem* current = history->leftmost;
-    while (current != NULL) {
-        struct deq_elem* temp = current;
-        current = current->next;
-        free(temp);
-    }
-}
-
-
-void save_history(){ //para guardar en el archivo los ultimos comandos
-    FILE *file = fopen(HISTORY_FILE, "a");
-    if (file != NULL) {
-        struct deq_elem *current = history->leftmost;
-        int i=0;
-        while (current != NULL) {
-            if (i>=loaded_history) fprintf(file, "%s\n", current->str);
-            current = current->next;
-        }
-        fclose(file);
-    }
-    free_history();
-}
-
- 
-void show_history(int count) {
-    struct deq_elem *current = history->rightmost;
-    int commandCount=0;
-    while (current != NULL && commandCount < count) {
-        printf("%s\n", current->str);
-        current = current->prev;
-        commandCount++;
-    }
-}
-
-
-
-int builtin_history(int argc,char **argv){
-    int default_lines = 10;
-    if (argc==1){
-        show_history(default_lines);
-    }else{
-        show_history(argv[2]);
-    }    
-    return 1;
 }
 
 extern struct deq *deq_create1(void){
