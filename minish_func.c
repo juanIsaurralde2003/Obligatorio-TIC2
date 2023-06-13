@@ -17,7 +17,10 @@
 int loaded_history;
 
 void load_history(){
-    char filename[] = "/home/jisaurralde/Proyecto_minish/minish_history.txt";
+    size_t new_path_len = strlen(getenv("HOME")) + strlen(HISTORY_FILE) + 2; 
+    char *filename = NULL;
+    filename = malloc(new_path_len);
+    snprintf(filename, new_path_len, "%s/%s", getenv("HOME"), HISTORY_FILE);
     FILE* file = fopen(filename, "r");
     if (file != NULL) {
         char command[MAX_COMMAND_LENGTH];
@@ -46,7 +49,11 @@ void free_history() { //liberar la memoria utilizada por history
 
 
 void save_history(){ //para guardar en el archivo los ultimos comandos
-    char filename[] = "/home/jisaurralde/Proyecto_minish/minish_history.txt";
+    
+    size_t new_path_len = strlen(getenv("HOME")) + strlen(HISTORY_FILE) + 2; 
+    char *filename = NULL;
+    filename = malloc(new_path_len);
+    snprintf(filename, new_path_len, "%s/%s", getenv("HOME"), HISTORY_FILE);
     FILE *file = fopen(filename, "a");
     if (file != NULL) {
         struct deq_elem *current = history->leftmost;
