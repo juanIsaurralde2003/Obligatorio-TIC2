@@ -108,7 +108,6 @@ int main(void){
     free(argv);
     free(buffer);
     str_sigint_action.sa_handler = SIG_DFL;
-    save_history();
     return 0;
 }
 

@@ -11,14 +11,14 @@
 #include <error.h>
 #include <sys/wait.h>
 #include <dirent.h>
-#define HISTORY_FILE "$HOME/.minish_history"
 #define MAX_COMMAND_LENGTH 100
 
 
 int loaded_history;
 
 void load_history(){
-    FILE* file = fopen(HISTORY_FILE, "r");
+    char filename[] = "/home/jisaurralde/Proyecto_minish/minish_history.txt";
+    FILE* file = fopen(filename, "r");
     if (file != NULL) {
         char command[MAX_COMMAND_LENGTH];
 
@@ -46,10 +46,9 @@ void free_history() { //liberar la memoria utilizada por history
 
 
 void save_history(){ //para guardar en el archivo los ultimos comandos
-    char filename[] = "$HOME/.minish_history.txt";
+    char filename[] = "/home/jisaurralde/Proyecto_minish/minish_history.txt";
     FILE *file = fopen(filename, "a");
     if (file != NULL) {
-        printf("entre\n");
         struct deq_elem *current = history->leftmost;
         int i=0;
         while (current != NULL) {
@@ -66,7 +65,7 @@ void show_history(int count) {
     struct deq_elem *current = history->rightmost;
     int commandCount=0;
     while (current != NULL && commandCount < count) {
-        printf("%s", current->str);
+        printf("%s\n", current->str);
         current = current->prev;
         commandCount++;
     }

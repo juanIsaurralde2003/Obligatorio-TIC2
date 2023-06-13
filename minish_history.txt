@@ -1,0 +1,22 @@
+a
+
+exit
+
+hola
+
+hola
+
+history 2
+
+exit
+
+history
+
+exit
+
+aa
+
+a
+
+exit
+
