@@ -14,13 +14,19 @@
 #define MAX_COMMAND_LENGTH 100
 
 
-int loaded_history;
+int loaded_history; //cantidad de lineas cargadas en history al inicio del programa
 
-void load_history(){
+char * create_home_path(){
     size_t new_path_len = strlen(getenv("HOME")) + strlen(HISTORY_FILE) + 2; 
     char *filename = NULL;
     filename = malloc(new_path_len);
     snprintf(filename, new_path_len, "%s/%s", getenv("HOME"), HISTORY_FILE);
+    return filename;
+}
+
+void load_history(){
+    char *filename = create_home_path();
+
     FILE* file = fopen(filename, "r");
     if (file != NULL) {
         char command[MAX_COMMAND_LENGTH];
@@ -28,14 +34,12 @@ void load_history(){
         while (fgets(command, MAX_COMMAND_LENGTH, file) != NULL) {
             // Eliminar el carácter de nueva línea del final del comando
             command[strcspn(command, "\n")] = '\0';
-            deq_append(history,command);
-            
-
+            deq_append(history,command); //agregamos el comando a la lista
         }
 
         fclose(file);
     }
-    loaded_history=history->count;
+    loaded_history=history->count; 
 }
 
 void free_history() { //liberar la memoria utilizada por history
@@ -50,16 +54,14 @@ void free_history() { //liberar la memoria utilizada por history
 
 void save_history(){ //para guardar en el archivo los ultimos comandos
     
-    size_t new_path_len = strlen(getenv("HOME")) + strlen(HISTORY_FILE) + 2; 
-    char *filename = NULL;
-    filename = malloc(new_path_len);
-    snprintf(filename, new_path_len, "%s/%s", getenv("HOME"), HISTORY_FILE);
+    char *filename = create_home_path();
+
     FILE *file = fopen(filename, "a");
     if (file != NULL) {
         struct deq_elem *current = history->leftmost;
         int i=0;
-        while (current != NULL) {
-            if (i>=loaded_history) fprintf(file, "%s\n", current->str);
+        while (current != NULL) {  
+            if (i>=loaded_history) fprintf(file, "%s\n", current->str);  //cargamos a partir de las nuevas líneas
             current = current->next;
             i++;
         }
@@ -172,8 +174,7 @@ int builtin_gid (int argc, char ** argv){
     return 0;
 }
 
-//dsadsa
-int builtin_getenv (int argc, char ** argv){ //revisar excepciones
+int builtin_getenv (int argc, char ** argv){ 
     if(argc>1){
         for(int i=1;i<argc;i++){
             char *variable = argv[i];
@@ -186,10 +187,6 @@ int builtin_getenv (int argc, char ** argv){ //revisar excepciones
             }
         }
     }
-    else{
-        //imprimir el valor de todas las variables de entorno
-
-    }
     return 0;
 }
 int builtin_setenv (int argc, char ** argv){
@@ -199,7 +196,7 @@ int builtin_setenv (int argc, char ** argv){
         setenv(variable,valor,1);
     }
     else{
-        error(1,errno,"setenv error: Argumentos invalidos"); //revisar excepciones
+        error(1,errno,"setenv error: Argumentos invalidos"); 
     }
     return 0;
 }
@@ -209,13 +206,13 @@ int linea2argv(char *linea, int argc, char **argv){
     int word_count=0;
     int is_a_space=0;
 
-    while(linea[i]!='\n' && word_count<argc){
-        if(linea[i]!= '\0' && linea[i]!=' ' && linea[i]!='\t'){
+    while(linea[i]!='\n' && word_count<argc){  //recorremos la linea
+        if(linea[i]!= '\0' && linea[i]!=' ' && linea[i]!='\t'){  //si hay un espacio
             argv[word_count][j] = linea[i]; 
             j++;
             is_a_space=0;
         }
-        else if(is_a_space==0)
+        else if(is_a_space==0)   //checkeamos que el anterior no sea un espacio
         {
             argv[word_count][j] = '\0';
             j=0;
@@ -258,13 +255,13 @@ int externo (int argc, char ** argv)
    	error(1,errno, "Fork Failed ");
    	return 1;
    }
-    else if (pid == 0) { /* child process */
+    else if (pid == 0) { // proceso hijo 
         status = execvp(argv[0], argv);
         error(1,errno,"External function fail ");
         exit(1);
     }
-    else { /* parent process */
-   	/* parent will wait for the child to complete */
+    else { // proceso padre
+   	// padre espera a que hijo termine
    	  wait(NULL);
     }
     return status;
@@ -305,10 +302,10 @@ int builtin_cd (int argc, char ** argv)
         size_t arg_len = strlen(argv[1]);
 
         if (arg_len > 0 && argv[1][0] == '/') {
-            // Absolute path
+            // Path absoluto
             new_path = argv[1];
         } else {
-            // Relative path
+            // Path relativo
             size_t new_path_len = current_path_len + arg_len + 2; 
             new_path = malloc(new_path_len);
             snprintf(new_path, new_path_len, "%s/%s", current_path, argv[1]);
@@ -322,10 +319,10 @@ int builtin_cd (int argc, char ** argv)
             setenv("OLDPWD", old_path, 1);
             setenv("PWD", new_path, 1);
         } else {
-            error(1,errno, "cd to %s failed ", new_path);
+            error(1,errno, "cd a %s falló ", new_path);
         }
     } else {
-        error(1,errno, "Invalid argument ");
+        error(1,errno, "Argumento Inválido ");
     }
 
     return 0;
@@ -377,6 +374,8 @@ int builtin_dir (int argc, char ** argv){
     }
     return 0;
 }
+
+// Funciones de lista doblemente enlazada
 
 extern struct deq *deq_create1(void){
     return (struct deq*) malloc_or_exit(sizeof(struct deq));
