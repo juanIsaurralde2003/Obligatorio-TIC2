@@ -55,6 +55,7 @@ struct builtin_struct * builtin_lookup(char *cmd)
     return NULL;
 }
 
+
 void malloc_for_list(char **argv) {
     for (int i = 0; i < MAXNUMBERWORDS; i++) {
         argv[i] = (char *)malloc_or_exit((MAXWORDS+1) * sizeof(char));
@@ -95,7 +96,12 @@ int main(void){
 
     while (1) {
         print_minish_with_data();
-        fgets(buffer, MAXLINE, stdin);
+        if(fgets(buffer, MAXLINE, stdin) == NULL){
+            if(feof(stdin)){
+                break;
+            }
+            continue;
+        }
         malloc_for_list(argv);
         int argc = linea2argv(buffer, MAXNUMBERWORDS, argv);
         buffer[strcspn(buffer, "\n")] = '\0';
@@ -105,7 +111,7 @@ int main(void){
             free_list(argv,argc);
         }
     }
-    
+    save_history();
     free(argv);
     free(buffer);
     str_sigint_action.sa_handler = SIG_DFL;

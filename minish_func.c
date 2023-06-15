@@ -28,22 +28,29 @@ void load_history(){
     char *filename = create_home_path();
 
     FILE* file = fopen(filename, "r");
-    if (file != NULL) {
-        char command[MAX_COMMAND_LENGTH];
 
-        while (fgets(command, MAX_COMMAND_LENGTH, file) != NULL) {
-            // Eliminar el carácter de nueva línea del final del comando
-            command[strcspn(command, "\n")] = '\0';
-            deq_append(history,command); //agregamos el comando a la lista
-        }
-
+    if (file == NULL) {
+        // File doesn't exist, create it
+        file = fopen(filename, "w");
         fclose(file);
+        return;
     }
+
+
+    char command[MAX_COMMAND_LENGTH];
+
+    while (fgets(command, MAX_COMMAND_LENGTH, file) != NULL) {
+            // Eliminar el carácter de nueva línea del final del comando
+        command[strcspn(command, "\n")] = '\0';
+        deq_append(history,command); //agregamos el comando a la lista
+    }
+
+    fclose(file);
     loaded_history=history->count; 
 }
 
-void free_history() { //liberar la memoria utilizada por history
-    struct deq_elem* current = history->leftmost;
+void free_queue(struct deq* deque) { //liberar la memoria utilizada por history
+    struct deq_elem* current = deque->leftmost;
     while (current != NULL) {
         struct deq_elem* temp = current;
         current = current->next;
@@ -67,7 +74,7 @@ void save_history(){ //para guardar en el archivo los ultimos comandos
         }
         fclose(file);
     }
-    free_history();
+    free_queue(history);
 }
 
  
@@ -90,7 +97,7 @@ int builtin_history(int argc,char **argv){
     }else{
         show_history(atoi(argv[1]));
     }    
-    return 1;
+    return 0;
 }
 
 
@@ -114,7 +121,8 @@ int builtin_help (int argc, char ** argv)
             printf("%s\n",cmd->help_txt);
         }
         else{
-            error(1,errno,"Lo siento, el comando no existe. Escriba 'help' para ver la lista de comandos");
+            fprintf(stderr,"Lo siento, el comando no existe. Escriba 'help' para ver la lista de comandos\n");
+            return 1;
         }
     }
 
@@ -133,7 +141,7 @@ int builtin_pid (int argc,char ** argv){
         printf("Id del proceso padre es: %d\n",(unsigned) pid);
         return 0;
     }
-    error(1,errno,"No se pudo encontrar pid");
+    fprintf(stderr,"No se pudo encontrar pid\n");
     return 1;
 
 }
@@ -149,7 +157,7 @@ int builtin_uid (int argc, char ** argv){
             printf("id: %d\n",uid);
             return 0;
         }
-    error(1,errno,"No se pudo encontrar nombre de usuario para la UID %u ",(unsigned) uid);
+    fprintf(stderr,"No se pudo encontrar nombre de usuario para la UID %u\n",(unsigned) uid);
     return 1;
 }
 int builtin_gid (int argc, char ** argv){
@@ -183,7 +191,8 @@ int builtin_getenv (int argc, char ** argv){
                 printf("%s = %s\n",variable,valor);
             }
             else{
-                error(1,errno,"%s %s error: Argumentos inválidos ",argv[0],argv[1]);
+                fprintf(stderr,"%s %s error: Argumentos inválidos \n",argv[0],argv[1]);
+                return 1;
             }
         }
     }
@@ -196,7 +205,8 @@ int builtin_setenv (int argc, char ** argv){
         setenv(variable,valor,1);
     }
     else{
-        error(1,errno,"setenv error: Argumentos invalidos"); 
+        fprintf(stderr,"setenv error: Argumentos invalidos\n"); 
+        return 1;
     }
     return 0;
 }
@@ -252,7 +262,7 @@ int externo (int argc, char ** argv)
     int status=1;
 
    if (pid < 0 || argc==0) { 
-   	error(1,errno, "Fork Failed ");
+   	fprintf(stderr, "Fork Failed ");
    	return 1;
    }
     else if (pid == 0) { // proceso hijo 
@@ -278,7 +288,8 @@ int builtin_unsetenv(int argc, char **argv){
             char *variable= argv[i];
             int result= unsetenv(variable); //Llamo a la funcion para eliminar la variable y verifico si ocurrio algun error.
             if(result!=0){
-                error(1,errno,"Error al eliminar la variable de entorno: %s ", variable);
+                fprintf(stderr,"Error al eliminar la variable de entorno: %s \n", variable);
+                return 1;
             }
             else{
                 printf("Variable de entorno eliminada: %s\n", variable);
@@ -296,6 +307,7 @@ int builtin_cd (int argc, char ** argv)
         new_path = getenv("HOME");
     } else if (strcmp(argv[1], "-") == 0) {
         new_path = getenv("OLDPWD");
+        if (new_path == NULL) new_path = getenv("HOME");
     } else {
         char *current_path = getenv("PWD");
         size_t current_path_len = strlen(current_path);
@@ -319,10 +331,12 @@ int builtin_cd (int argc, char ** argv)
             setenv("OLDPWD", old_path, 1);
             setenv("PWD", new_path, 1);
         } else {
-            error(1,errno, "cd a %s falló ", new_path);
+            fprintf(stderr, "cd a %s falló\n", new_path);
+            return 1;
         }
     } else {
-        error(1,errno, "Argumento Inválido ");
+        fprintf(stderr, "Argumento Inválido\n");
+        return 1;
     }
 
     return 0;
@@ -330,18 +344,26 @@ int builtin_cd (int argc, char ** argv)
 
 void print_files(DIR *dir){
     struct dirent *entry;
+    struct deq *ordered_list = deq_create();
+
      while ((entry = readdir(dir)) != NULL) {
-        printf("%s\n", entry->d_name);
+        deq_append_alphabetical(ordered_list,entry->d_name);
     }
+    print_deq(ordered_list);
+    free_queue(ordered_list);
 }
 void print_files_with_name(DIR *dir, char *name){
     struct dirent *entry;
+    struct deq *ordered_list = deq_create();
+
      while ((entry = readdir(dir)) != NULL) {
         char *nombre_archivo = entry->d_name;
         if(strstr(nombre_archivo, name) != NULL){
-            printf("%s\n", nombre_archivo);
+            deq_append_alphabetical(ordered_list,entry->d_name);
         }
     }
+    print_deq(ordered_list);
+    free_queue(ordered_list);
 }
 
 int builtin_dir (int argc, char ** argv){
@@ -369,7 +391,7 @@ int builtin_dir (int argc, char ** argv){
     }
 
     else{
-        error(1,errno,"Muchos argumentos ");
+        fprintf(stderr,"Muchos argumentos\n");
         return 1;
     }
     return 0;
@@ -383,6 +405,15 @@ extern struct deq *deq_create1(void){
 void delete_elem(struct deq_elem *elemento){
     free(elemento->str);
     free(elemento);
+}
+
+void print_deq(struct deq *deque){
+    struct deq_elem *elemento=deque->leftmost;
+    while (elemento->next!=NULL){
+        printf("%s\n",elemento->str);
+        elemento = elemento->next;
+    }
+
 }
 
 extern struct deq_elem *elem_create(void){
@@ -420,7 +451,51 @@ extern struct deq_elem *deq_append(struct deq *deque, char *s){
 }
 // append element on the right end, return new elem
 
+extern struct deq_elem *deq_append_alphabetical(struct deq *deque, char *s) {
+    struct deq_elem *elemento = elem_create();
+    elemento->str = strdup_or_exit(s);
 
+    if (deque->leftmost == NULL && deque->rightmost == NULL) {
+        // Deque is empty, insert as the first element
+        deque->leftmost = elemento;
+        deque->rightmost = elemento;
+        elemento->prev = NULL;
+        elemento->next = NULL;
+        deque->count++;
+        return elemento;
+    }
+
+    // Find the appropriate position based on alphabetical order
+    struct deq_elem *current = deque->leftmost;
+    while (current != NULL) {
+        if (strcasecmp(s, current->str) < 0) {
+            // Insert the element before current
+            if (current->prev != NULL) {
+                current->prev->next = elemento;
+                elemento->prev = current->prev;
+            } else {
+                // Inserting at the beginning of the deque
+                deque->leftmost = elemento;
+                elemento->prev = NULL;
+            }
+            elemento->next = current;
+            current->prev = elemento;
+            deque->count++;
+            return elemento;
+        }
+        current = current->next;
+    }
+
+    // Reached the end of the deque, insert at the rightmost position
+    struct deq_elem *ultimo = deque->rightmost;
+    ultimo->next = elemento;
+    elemento->prev = ultimo;
+    elemento->next = NULL;
+    deque->rightmost = elemento;
+    deque->count++;
+
+    return elemento;
+}
 
 
 

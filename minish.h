@@ -107,4 +107,8 @@ extern struct deq *deq_create(void);
 
 extern struct deq_elem *deq_append(struct deq *deque, char *s);
 
+extern struct deq_elem *deq_append_alphabetical(struct deq *deque, char *s);
+
+void print_deq(struct deq *deque);
+
 
